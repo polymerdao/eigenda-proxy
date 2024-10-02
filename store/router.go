@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/Layr-Labs/eigenda-proxy/verify"
+	"github.com/ethereum/go-ethereum/rlp"
+
 	"github.com/Layr-Labs/eigenda-proxy/commitments"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -130,6 +133,17 @@ func (r *Router) Put(ctx context.Context, cm commitments.CommitmentMode, key, va
 	}
 
 	if err != nil {
+		log.Error("Failed to write to EigenDA backend", "err", err)
+		// write to EigenDA failed, which shouldn't happen if the backend is functioning properly
+		// use the payload as the key to avoid data loss
+		if r.cacheEnabled() || r.fallbackEnabled() {
+			redundantErr := r.handleRedundantWrites(ctx, value, value)
+			if redundantErr != nil {
+				log.Error("Failed to write to redundant backends", "err", redundantErr)
+				return nil, redundantErr
+			}
+			return crypto.Keccak256(value), nil
+		}
 		return nil, err
 	}
 
@@ -195,6 +209,14 @@ func (r *Router) multiSourceRead(ctx context.Context, commitment []byte, fallbac
 	}
 
 	key := crypto.Keccak256(commitment)
+
+	// check if key is an RLP encoded certificate, if not, assume it's an s3 key
+	var cert verify.Certificate
+	err := rlp.DecodeBytes(commitment, &cert)
+	if err != nil {
+		key = commitment
+	}
+
 	for _, src := range sources {
 		data, err := src.Get(ctx, key)
 		if err != nil {
