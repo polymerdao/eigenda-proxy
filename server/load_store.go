@@ -136,5 +136,5 @@ func LoadStoreManager(ctx context.Context, cfg CLIConfig, log log.Logger, m metr
 	}
 
 	log.Info("Creating storage router", "eigenda backend type", eigenDA != nil, "s3 backend type", s3Store != nil)
-	return store.NewManager(eigenDA, s3Store, log, secondary)
+	return store.NewManager(eigenDA, s3Store, log, secondary, cfg.EigenDAConfig.UseWriteFallback)
 }
