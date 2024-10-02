@@ -9,6 +9,7 @@ import (
 
 	"github.com/Layr-Labs/eigenda-proxy/commitments"
 	"github.com/Layr-Labs/eigenda-proxy/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -124,6 +125,18 @@ func (m *Manager) Put(ctx context.Context, cm commitments.CommitmentMode, key, v
 	}
 
 	if err != nil {
+		log.Error("Failed to write to EigenDA backend", "err", err)
+		// write to EigenDA failed, which shouldn't happen if the backend is functioning properly
+		// use the payload as the key to avoid data loss
+		if m.secondary.Enabled() && !m.secondary.AsyncWriteEntry() {
+			redundantErr := m.secondary.HandleRedundantWrites(ctx, value, value)
+			if redundantErr != nil {
+				log.Error("Failed to write to redundant backends", "err", redundantErr)
+				return nil, redundantErr
+			}
+
+			return crypto.Keccak256(value), nil
+		}
 		return nil, err
 	}
 
