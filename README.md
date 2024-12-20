@@ -57,7 +57,6 @@ In order to disperse to the EigenDA network in production, or at high throughput
 | `--port` | `3100` | `$EIGENDA_PROXY_PORT` | Server listening port. |
 | `--s3.credential-type` |  | `$EIGENDA_PROXY_S3_CREDENTIAL_TYPE` | Static or iam. |
 | `--s3.access-key-id` |  | `$EIGENDA_PROXY_S3_ACCESS_KEY_ID` | Access key id for S3 storage. |
-| `--s3.access-key-id` |  | `$EIGENDA_PROXY_S3_ACCESS_KEY_ID` | Access key id for S3 storage. |
 | `--s3.access-key-secret` |  | `$EIGENDA_PROXY_S3_ACCESS_KEY_SECRET` | Access key secret for S3 storage. |
 | `--s3.bucket` |  | `$EIGENDA_PROXY_S3_BUCKET` | Bucket name for S3 storage. |
 | `--s3.path` |  | `$EIGENDA_PROXY_S3_PATH` | Bucket path for S3 storage. |
