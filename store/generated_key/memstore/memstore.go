@@ -38,6 +38,8 @@ type Config struct {
 	// after sleeping PutLatency duration.
 	// This can be used to simulate eigenda being down.
 	PutReturnsFailoverError bool
+	// SimulateEigenDAFailure forces Put operations to fail, simulating EigenDA failures
+	SimulateEigenDAFailure bool
 }
 
 /*
@@ -115,6 +117,12 @@ func (e *MemStore) pruneExpired() {
 func (e *MemStore) Get(_ context.Context, commit []byte) ([]byte, error) {
 	time.Sleep(e.config.GetLatency)
 	e.reads++
+
+	// Simulate EigenDA failure if configured
+	if e.config.SimulateEigenDAFailure {
+		return nil, fmt.Errorf("simulated EigenDA failure")
+	}
+
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
@@ -156,6 +164,11 @@ func (e *MemStore) Put(_ context.Context, value []byte) ([]byte, error) {
 
 	e.mu.Lock()
 	defer e.mu.Unlock()
+
+	// Simulate EigenDA failure if configured
+	if e.config.SimulateEigenDAFailure {
+		return nil, fmt.Errorf("simulated EigenDA failure")
+	}
 
 	commitment, err := e.verifier.Commit(encodedVal)
 	if err != nil {
